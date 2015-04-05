@@ -7,7 +7,6 @@ import java.util.Scanner;
  * Created by marty.farley on 4/2/2015.
  */
 public class CubeDB {
-
     private static String protocol = "jdbc:derby:";
     private static String dbName = "cubeDB";
 
@@ -49,7 +48,7 @@ public class CubeDB {
 
             try {
                 statement.executeUpdate(insertSQLStatement);
-            } catch (SQLException se){
+            } catch (SQLException se) {
                 se.printStackTrace();
             }
         }
@@ -60,7 +59,7 @@ public class CubeDB {
 
         try {
             resultSet = statement.executeQuery(fetchAllDataSQL);
-            while (resultSet.next()){
+            while (resultSet.next()) {
                 int holderID = resultSet.getInt("SolveID");
                 String recordHolder = resultSet.getString("Solver");
                 float recordTime = resultSet.getFloat("TimeTaken");
@@ -70,14 +69,14 @@ public class CubeDB {
                         + recordHolder + " Time taken, in seconds: " + recordTime);
 
             }
-        } catch (SQLException se){
+        } catch (SQLException se) {
             se.printStackTrace();
         }
 
         System.out.println("Would you like to add a new record? Y/N");
-        String userAnswer = scanner.nextLine();
+        String userAddAnswer = scanner.nextLine();
 
-        if (userAnswer.equalsIgnoreCase("Y")){
+        if (userAddAnswer.equalsIgnoreCase("Y")) {
             System.out.println("What is the thing that solved the cube?");
             String solver = scanner.nextLine();
             System.out.println("What was the time it took, in seconds?");
@@ -91,7 +90,7 @@ public class CubeDB {
                 statement.executeUpdate(insertSQLStatement);
                 try {
                     resultSet = statement.executeQuery(fetchAllDataSQL);
-                    while (resultSet.next()){
+                    while (resultSet.next()) {
                         int holderID = resultSet.getInt("SolveID");
                         String recordHolder = resultSet.getString("Solver");
                         float recordTime = resultSet.getFloat("TimeTaken");
@@ -101,39 +100,90 @@ public class CubeDB {
                                 + recordHolder + " Time taken, in seconds: " + recordTime);
 
                     }
-                } catch (SQLException se){
+                } catch (SQLException se) {
                     se.printStackTrace();
                 }
-            } catch (SQLException se){
+            } catch (SQLException se) {
                 se.printStackTrace();
             }
         }
 
+        System.out.println("Would you like to update any records?");
+        String userUpdateAnswer = scanner.nextLine();
 
-        String deleteCubeSQL = "DROP TABLE cubes";
-        try {
-            statement.executeUpdate(deleteCubeSQL);
-        } catch (SQLException se){
-            se.printStackTrace();
-        }
+        if (userUpdateAnswer.equalsIgnoreCase("Y")) {
+            boolean solverFound = true;
+            while (solverFound == true) {
+                System.out.println("What is the thing that set the new record?");
+                String updateHolder = scanner.nextLine();
+
+                if (updateHolder.equals("")) {
+                    break;
+                }
+
+                try {
+                    String searchQuery = "select * from Cubes where solver like ?";
+                    System.out.println(searchQuery);
+                    PreparedStatement recordSearch = conn.prepareStatement(searchQuery);
+                    recordSearch.setString(1, updateHolder);
+                    //TODO FIX THIS
+                    resultSet = recordSearch.executeQuery();
 
 
-        try {
-            if (statement != null) {
-                statement.close();
+                    if (resultSet.next()){
+                        solverFound = true;
+                        String solver = resultSet.getString("Solver");
+
+                        System.out.println("What was the new record for " + solver + "?");
+                        String timeInput = scanner.nextLine();
+                        float time = Float.parseFloat(timeInput);
+
+
+                        String updateSQLStatement = "UPDATE Cubes SET timeTaken = " + time + " where solver" +
+                                "= " + solver + ")";
+                        System.out.println(updateSQLStatement);
+                        statement.executeUpdate(updateSQLStatement);
+                        solverFound = false;
+                    } else {
+                        solverFound = false;
+                    }
+
+                    if (solverFound == false){
+                        System.out.println("Sorry, that record holder was not found in the database.");
+                        resultSet.close();
+                    }
+
+                } catch (SQLException se){
+                    se.printStackTrace();
+                }
+
             }
-        } catch (SQLException se){
-            se.printStackTrace();
-        }
 
-        try {
-            if (conn != null){
-                conn.close();
+
+            String deleteCubeSQL = "DROP TABLE cubes";
+            try {
+                statement.executeUpdate(deleteCubeSQL);
+            } catch (SQLException se) {
+                se.printStackTrace();
             }
-        } catch (SQLException se) {
-            se.printStackTrace();
+
+
+            try {
+                if (statement != null) {
+                    statement.close();
+                }
+            } catch (SQLException se) {
+                se.printStackTrace();
+            }
+
+            try {
+                if (conn != null) {
+                    conn.close();
+                }
+            } catch (SQLException se) {
+                se.printStackTrace();
+            }
         }
     }
-
 
 }
