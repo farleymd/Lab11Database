@@ -7,6 +7,7 @@ import java.util.Scanner;
  * Created by marty.farley on 4/2/2015.
  */
 public class CubeDB {
+
     private static String protocol = "jdbc:derby:";
     private static String dbName = "cubeDB";
 
@@ -133,5 +134,6 @@ public class CubeDB {
             se.printStackTrace();
         }
     }
+
 
 }
